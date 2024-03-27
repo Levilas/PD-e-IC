@@ -1,0 +1,76 @@
+import tkinter as tk
+
+class CelulaDeCarga:
+    def __init__(self):
+        self.capacidade_min = 0
+        self.capacidade_max = 0
+        self.sensibilidade = None
+        self.modulo_elasticidade = 207  # em GPa (Gigapascals) - Exemplo: aço
+        self.diametro_fio = 0.001  # em metros (Exemplo: dimensões típicas de uma célula de carga)
+        self.fator_forma = 1  # Valor arbitrário
+        self.tensao_excitacao = 5  # em Volts (Valor arbitrário)
+        self.diametro_tubo = 0.0254  # em metros (Exemplo: dimensões típicas de uma célula de carga)
+        self.espessura = 0.005  # em metros (Exemplo: dimensões típicas de uma célula de carga)
+
+    def calcular_sensibilidade(self):
+        constante = (self.modulo_elasticidade * self.diametro_fio * self.fator_forma * self.tensao_excitacao) / (self.espessura * self.diametro_tubo**2)
+        self.sensibilidade = constante / self.capacidade_max  # A sensibilidade é inversamente proporcional à capacidade máxima
+
+    def exibir_parametros(self):
+        parametros = {
+            "Capacidade de Carga (N)": f"{self.capacidade_min} - {self.capacidade_max}",
+            "Sensibilidade (mV/V)": f"{self.sensibilidade:.2f}",
+            "Módulo de Elasticidade (GPa)": self.modulo_elasticidade,
+            "Diâmetro do Fio (m)": self.diametro_fio,
+            "Fator de Forma": self.fator_forma,
+            "Tensão de Excitação (V)": self.tensao_excitacao,
+            "Diâmetro do Tubo (m)": self.diametro_tubo,
+            "Espessura (m)": self.espessura
+        }
+        return parametros
+
+def calcular_parametros():
+    try:
+        capacidade_min = float(entry_cap_min.get())
+        capacidade_max = float(entry_cap_max.get())
+        if capacidade_min >= capacidade_max:
+            raise ValueError("A capacidade mínima deve ser menor que a capacidade máxima.")
+        
+        celula_de_carga.capacidade_min = capacidade_min
+        celula_de_carga.capacidade_max = capacidade_max
+        celula_de_carga.calcular_sensibilidade()
+        
+        parametros = celula_de_carga.exibir_parametros()
+        for key, value in parametros.items():
+            lb_resultado.insert(tk.END, f"{key}: {value}")
+
+    except ValueError as e:
+        lb_resultado.insert(tk.END, f"Erro: {e}")
+
+# Interface gráfica
+root = tk.Tk()
+root.title("Parâmetros da Célula de Carga")
+
+frame = tk.Frame(root)
+frame.pack(padx=10, pady=10)
+
+label_cap_min = tk.Label(frame, text="Capacidade Mínima (N):")
+label_cap_min.grid(row=0, column=0, sticky="e")
+entry_cap_min = tk.Entry(frame)
+entry_cap_min.grid(row=0, column=1)
+
+label_cap_max = tk.Label(frame, text="Capacidade Máxima (N):")
+label_cap_max.grid(row=1, column=0, sticky="e")
+entry_cap_max = tk.Entry(frame)
+entry_cap_max.grid(row=1, column=1)
+
+btn_calcular = tk.Button(frame, text="Calcular Parâmetros", command=calcular_parametros)
+btn_calcular.grid(row=2, columnspan=2, pady=5)
+
+lb_resultado = tk.Listbox(frame, width=50)
+lb_resultado.grid(row=3, columnspan=2)
+
+celula_de_carga = CelulaDeCarga()
+
+root.mainloop()
+
